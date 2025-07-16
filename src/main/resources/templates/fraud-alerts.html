@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Fraud Alerts - Transact Guard</title>
+</head>
+<body>
+<h2>Fraud Alerts</h2>
+<p>Logged in as: <span th:text="${user.username}"></span></p>
+<table border="1">
+    <tr><th>Description</th><th>Transaction ID</th><th>Date</th></tr>
+    <tr th:each="fraud : ${frauds}">
+        <td th:text="${fraud.description}"></td>
+        <td th:text="${fraud.transactionId}"></td>
+        <td th:text="${#dates.format(fraud.timestamp, 'yyyy-MM-dd HH:mm')}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(frauds)}">
+        <td colspan="3">No fraud alerts found.</td>
+    </tr>
+</table>
+<p><a th:href="@{/dashboard}">Back to Dashboard</a></p>
+</body>
+</html> 

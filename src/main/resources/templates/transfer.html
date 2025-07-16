@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Send Money - Transact Guard</title>
+</head>
+<body>
+<h2>Send Money</h2>
+<p>Logged in as: <span th:text="${user.username}"></span> | Balance: ₹<span th:text="${user.accountBalance}"></span></p>
+<form th:action="@{/transfer}" method="post">
+    <label>Recipient Username: <input type="text" name="recipientUsername" required></label><br>
+    <label>Amount: <input type="number" name="amount" step="0.01" min="0.01" required></label><br>
+    <button type="submit">Send</button>
+</form>
+<div th:if="${error}" style="color:red;">[[${error}]]</div>
+<div th:if="${success}" style="color:green;">[[${success}]]</div>
+<p><a th:href="@{/dashboard}">Back to Dashboard</a></p>
+</body>
+</html> 

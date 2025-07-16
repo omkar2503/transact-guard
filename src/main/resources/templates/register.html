@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Register - Transact Guard</title>
+</head>
+<body>
+<h2>Register</h2>
+<form th:action="@{/register}" method="post">
+    <label>Username: <input type="text" name="username" required></label><br>
+    <label>Password: <input type="password" name="password" required></label><br>
+    <button type="submit">Register</button>
+</form>
+<div th:if="${error}" style="color:red;">[[${error}]]</div>
+<div th:if="${success}" style="color:green;">[[${success}]]</div>
+<p>Already have an account? <a th:href="@{/login}">Login</a></p>
+</body>
+</html> 
