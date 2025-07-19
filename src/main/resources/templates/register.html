@@ -8,6 +8,7 @@
 <form th:action="@{/register}" method="post">
     <label>Username: <input type="text" name="username" required></label><br>
     <label>Password: <input type="password" name="password" required></label><br>
+    <label>Initial Balance: <input type="number" name="initialBalance" step="0.01" min="0" required></label><br>
     <button type="submit">Register</button>
 </form>
 <div th:if="${error}" style="color:red;">[[${error}]]</div>

@@ -21,12 +21,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User registerUser(String username, String password) {
+    public User registerUser(String username, String password, BigDecimal initialBalance) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
         String hashedPassword = passwordEncoder.encode(password);
-        User user = new User(null, username, hashedPassword, BigDecimal.ZERO);
+        User user = new User(null, username, hashedPassword, initialBalance);
         return userRepository.save(user);
     }
 

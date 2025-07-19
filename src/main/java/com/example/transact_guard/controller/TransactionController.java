@@ -10,10 +10,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ModelAttribute;
-
+import jakarta.servlet.http.HttpSession;
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @Controller
 public class TransactionController {
@@ -28,7 +26,8 @@ public class TransactionController {
     }
 
     @GetMapping("/transfer")
-    public String showTransferForm(@ModelAttribute("user") User user, Model model) {
+    public String showTransferForm(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
         if (user == null) {
             model.addAttribute("error", "Please log in to transfer money.");
             return "login";
@@ -38,10 +37,11 @@ public class TransactionController {
     }
 
     @PostMapping("/transfer")
-    public String transferMoney(@ModelAttribute("user") User user,
+    public String transferMoney(HttpSession session,
                                 @RequestParam String recipientUsername,
                                 @RequestParam BigDecimal amount,
                                 Model model) {
+        User user = (User) session.getAttribute("user");
         if (user == null) {
             model.addAttribute("error", "Please log in to transfer money.");
             return "login";
@@ -49,10 +49,13 @@ public class TransactionController {
         try {
             Transaction txn = transactionService.sendMoney(user.getUserId(), recipientUsername, amount);
             model.addAttribute("success", "Transfer successful! Transaction ID: " + txn.getId());
+            // Update user balance in session
+            user = userService.findById(user.getUserId()).orElse(user);
+            session.setAttribute("user", user);
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
-        model.addAttribute("user", userService.findById(user.getUserId()).orElse(user));
+        model.addAttribute("user", user);
         return "transfer";
     }
 } 

@@ -8,8 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
+import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 @Controller
 public class AuthController {
@@ -29,11 +30,13 @@ public class AuthController {
     @PostMapping("/register")
     public String registerUser(@RequestParam String username,
                                @RequestParam String password,
-                               Model model) {
+                               @RequestParam BigDecimal initialBalance,
+                               Model model,
+                               HttpSession session) {
         try {
-            userService.registerUser(username, password);
-            model.addAttribute("success", "Registration successful! Please log in.");
-            return "login";
+            User user = userService.registerUser(username, password, initialBalance);
+            session.setAttribute("user", user);
+            return "redirect:/dashboard";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             return "register";
@@ -48,15 +51,21 @@ public class AuthController {
     @PostMapping("/login")
     public String loginUser(@RequestParam String username,
                             @RequestParam String password,
-                            Model model) {
+                            Model model,
+                            HttpSession session) {
         Optional<User> userOpt = userService.authenticate(username, password);
         if (userOpt.isPresent()) {
-            // In a real app, set session/cookie here
-            model.addAttribute("user", userOpt.get());
+            session.setAttribute("user", userOpt.get());
             return "redirect:/dashboard";
         } else {
             model.addAttribute("error", "Invalid username or password");
             return "login";
         }
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/login";
     }
 } 

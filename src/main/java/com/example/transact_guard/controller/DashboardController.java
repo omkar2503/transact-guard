@@ -10,11 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestParam;
-
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 
 @Controller
 public class DashboardController {
@@ -31,24 +29,17 @@ public class DashboardController {
     }
 
     @GetMapping("/dashboard")
-    public String showDashboard(@RequestParam(required = false) String userId, @ModelAttribute("user") User user, Model model) {
-        // For now, get user from model or fallback to userId param
-        User currentUser = user;
-        if (currentUser == null && userId != null) {
-            Optional<User> userOpt = userService.findById(userId);
-            if (userOpt.isPresent()) {
-                currentUser = userOpt.get();
-            }
-        }
+    public String showDashboard(HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
-            model.addAttribute("error", "User not found. Please log in.");
+            model.addAttribute("error", "Please log in.");
             return "login";
         }
         List<Transaction> transactions = transactionService.getTransactionsByUserId(currentUser.getUserId());
         List<FraudTransaction> frauds = fraudTransactionRepository.findByUserId(currentUser.getUserId());
         model.addAttribute("user", currentUser);
-        model.addAttribute("transactions", transactions);
-        model.addAttribute("frauds", frauds);
+        model.addAttribute("transactions", transactions != null ? transactions : new ArrayList<>());
+        model.addAttribute("frauds", frauds != null ? frauds : new ArrayList<>());
         return "dashboard";
     }
 } 

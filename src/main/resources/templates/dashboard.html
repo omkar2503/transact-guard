@@ -4,26 +4,30 @@
     <title>Dashboard - Transact Guard</title>
 </head>
 <body>
-<h2>Welcome, <span th:text="${user.username}"></span>!</h2>
-<p>Account Balance: ₹<span th:text="${user.accountBalance}"></span></p>
+<h2>Welcome, <span th:text="${user.username}">USERNAME</span>!</h2>
+<p>Account Balance: ₹<span th:text="${user.accountBalance}">BALANCE</span></p>
 
 <h3>Recent Transactions</h3>
 <table border="1">
     <tr><th>ID</th><th>Recipient</th><th>Amount</th><th>Date</th></tr>
-    <tr th:each="txn : ${transactions}">
-        <td th:text="${txn.id}"></td>
-        <td th:text="${txn.recipientId}"></td>
-        <td th:text="${txn.amount}"></td>
-        <td th:text="${#dates.format(txn.timestamp, 'yyyy-MM-dd HH:mm')}"></td>
+    <tr>
+        <td>txn_id</td>
+        <td>recipient_id</td>
+        <td>amount</td>
+        <td>date</td>
     </tr>
 </table>
 
 <h3>Fraud Alerts</h3>
 <ul>
-    <li th:each="fraud : ${frauds}" th:text="${fraud.description} + ' (' + #dates.format(fraud.timestamp, 'yyyy-MM-dd HH:mm') + ')' "></li>
-    <li th:if="${#lists.isEmpty(frauds)}">No fraud alerts.</li>
+    <li>Fraud alert description (date)</li>
+    <li>No fraud alerts.</li>
 </ul>
 
-<p><a th:href="@{/transfer}">Send Money</a> | <a th:href="@{/fraud-alerts}">View All Fraud Alerts</a></p>
+<p>
+    <a href="/transfer">Send Money</a> |
+    <a href="/fraud-alerts">View All Fraud Alerts</a> |
+    <a href="/logout">Logout</a>
+</p>
 </body>
 </html> 
