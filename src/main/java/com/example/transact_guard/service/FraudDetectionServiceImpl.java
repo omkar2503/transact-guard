@@ -81,21 +81,24 @@ public class FraudDetectionServiceImpl implements FraudDetectionService {
         List<Transaction> weekTxns = userTxns.stream()
             .filter(t -> t.getTimestamp().after(weekAgo))
             .collect(Collectors.toList());
-        Map<Integer, Long> hourlyCounts = weekTxns.stream()
-            .collect(Collectors.groupingBy(t -> {
-                Calendar c = Calendar.getInstance();
-                c.setTime(t.getTimestamp());
-                return c.get(Calendar.HOUR_OF_DAY);
-            }, Collectors.counting()));
-        long thisHourCount = hourlyCounts.getOrDefault(hour, 0L);
-        double weeklyAvg = weekTxns.size() / 7.0 / 24.0;
-        if (weeklyAvg > 0 && thisHourCount > 3 * weeklyAvg) {
-            frauds.add(new FraudTransaction(null, transaction.getId(), userId, recipientId, "Frequency Spike", now));
+        if (weekTxns.size() > 3) { // Only trigger if more than 3 transactions in the past week
+            Map<Integer, Long> hourlyCounts = weekTxns.stream()
+                .collect(Collectors.groupingBy(t -> {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(t.getTimestamp());
+                    return c.get(Calendar.HOUR_OF_DAY);
+                }, Collectors.counting()));
+            long thisHourCount = hourlyCounts.getOrDefault(hour, 0L);
+            double weeklyAvg = weekTxns.size() / 7.0 / 24.0;
+            if (weeklyAvg > 0 && thisHourCount > 3 * weeklyAvg) {
+                frauds.add(new FraudTransaction(null, transaction.getId(), userId, recipientId, "Frequency Spike", now));
+            }
         }
 
         // 5. Duplicate Transaction Rule: Same sender→recipient, same amount, within 5 mins
         Date fiveMinsAgo = new Date(now.getTime() - 5 * 60 * 1000);
         boolean duplicate = userTxns.stream()
+            .filter(t -> !t.getId().equals(transaction.getId())) // Exclude current transaction
             .filter(t -> t.getRecipientId().equals(recipientId))
             .filter(t -> t.getAmount().compareTo(amount) == 0)
             .anyMatch(t -> t.getTimestamp().after(fiveMinsAgo));

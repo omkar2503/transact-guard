@@ -4,30 +4,53 @@
     <title>Dashboard - Transact Guard</title>
 </head>
 <body>
-<h2>Welcome, <span th:text="${user.username}">USERNAME</span>!</h2>
-<p>Account Balance: ₹<span th:text="${user.accountBalance}">BALANCE</span></p>
+<h2>Welcome, <span th:text="${user != null ? user.username : 'User'}">USERNAME</span>!</h2>
+<p>Account Balance: ₹<span th:text="${user != null ? user.accountBalance : 0}">BALANCE</span></p>
+
+<h3>Filter Transactions</h3>
+<form th:action="@{/dashboard}" method="get">
+    <label>Date from: <input type="date" name="startDate" th:value="${startDate != null ? #dates.format(startDate, 'yyyy-MM-dd') : ''}" id="startDate"></label>
+    <label>to: <input type="date" name="endDate" th:value="${endDate != null ? #dates.format(endDate, 'yyyy-MM-dd') : ''}" id="endDate"></label>
+    <label>Recipient: <input type="text" name="recipient" th:value="${recipient != null ? recipient : ''}"></label>
+    <label>Min Amount: <input type="number" name="minAmount" step="0.01" th:value="${minAmount != null ? minAmount : ''}"></label>
+    <label>Max Amount: <input type="number" name="maxAmount" step="0.01" th:value="${maxAmount != null ? maxAmount : ''}"></label>
+    <button type="submit">Filter</button>
+    <a th:href="@{/dashboard}">Reset</a>
+</form>
+<script>
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const localToday = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('startDate').setAttribute('max', localToday);
+  document.getElementById('endDate').setAttribute('max', localToday);
+</script>
 
 <h3>Recent Transactions</h3>
-<table border="1">
+<table border="1" th:if="${transactions != null && !#lists.isEmpty(transactions)}">
     <tr><th>ID</th><th>Recipient</th><th>Amount</th><th>Date</th></tr>
-    <tr>
-        <td>txn_id</td>
-        <td>recipient_id</td>
-        <td>amount</td>
-        <td>date</td>
+    <tr th:each="txn : ${transactions}">
+        <td th:text="${txn.id}"></td>
+        <td th:text="${txn.recipientId}"></td>
+        <td th:text="${txn.amount}"></td>
+        <td th:text="${txn.timestamp != null ? #dates.format(txn.timestamp, 'yyyy-MM-dd HH:mm') : 'N/A'}"></td>
     </tr>
 </table>
+<p th:if="${transactions == null || #lists.isEmpty(transactions)}">No transactions found.</p>
 
 <h3>Fraud Alerts</h3>
-<ul>
-    <li>Fraud alert description (date)</li>
-    <li>No fraud alerts.</li>
+<ul th:if="${frauds != null && !#lists.isEmpty(frauds)}">
+    <li th:each="fraud : ${frauds}"
+        th:text="|${fraud.description != null ? fraud.description : 'Unknown'} (${fraud.timestamp != null ? #dates.format(fraud.timestamp, 'yyyy-MM-dd HH:mm') : 'N/A'})|">
+    </li>
 </ul>
+<p th:if="${frauds == null || #lists.isEmpty(frauds)}">No fraud alerts.</p>
 
 <p>
-    <a href="/transfer">Send Money</a> |
-    <a href="/fraud-alerts">View All Fraud Alerts</a> |
-    <a href="/logout">Logout</a>
+    <a th:href="@{/transfer}">Send Money</a> |
+    <a th:href="@{/fraud-alerts}">View All Fraud Alerts</a> |
+    <a th:href="@{/logout}">Logout</a>
 </p>
 </body>
 </html> 

@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -66,5 +67,28 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> getTransactionsByRecipientId(String recipientId) {
         return transactionRepository.findByRecipientId(recipientId);
+    }
+
+    @Override
+    public List<Transaction> filterTransactions(String userId, Date start, Date end, String recipientUsername, BigDecimal minAmount, BigDecimal maxAmount) {
+        List<Transaction> allTxns = transactionRepository.findByUserId(userId);
+        final String recipientId;
+        if (recipientUsername != null && !recipientUsername.isEmpty()) {
+            recipientId = userRepository.findByUsername(recipientUsername)
+                .map(u -> u.getUserId())
+                .orElse(null);
+            if (recipientId == null) {
+                return new ArrayList<>(); // No such recipient
+            }
+        } else {
+            recipientId = null;
+        }
+        return allTxns.stream()
+            .filter(txn -> (start == null || !txn.getTimestamp().before(start)))
+            .filter(txn -> (end == null || !txn.getTimestamp().after(end)))
+            .filter(txn -> (recipientId == null || txn.getRecipientId().equals(recipientId)))
+            .filter(txn -> (minAmount == null || txn.getAmount().compareTo(minAmount) >= 0))
+            .filter(txn -> (maxAmount == null || txn.getAmount().compareTo(maxAmount) <= 0))
+            .toList();
     }
 } 

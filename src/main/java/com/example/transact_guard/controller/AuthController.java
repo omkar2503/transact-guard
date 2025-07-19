@@ -11,15 +11,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpSession;
 import java.util.Optional;
 import java.math.BigDecimal;
+import com.example.transact_guard.model.LoginAttempt;
+import com.example.transact_guard.repository.LoginAttemptRepository;
+import java.util.Date;
 
 @Controller
 public class AuthController {
 
     private final UserService userService;
+    private final LoginAttemptRepository loginAttemptRepository;
 
     @Autowired
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, LoginAttemptRepository loginAttemptRepository) {
         this.userService = userService;
+        this.loginAttemptRepository = loginAttemptRepository;
     }
 
     @GetMapping("/register")
@@ -53,9 +58,19 @@ public class AuthController {
                             @RequestParam String password,
                             Model model,
                             HttpSession session) {
-        Optional<User> userOpt = userService.authenticate(username, password);
-        if (userOpt.isPresent()) {
+        Optional<User> userOpt = userService.findByUsername(username);
+        String userId = userOpt.map(User::getUserId).orElse(null);
+        boolean success = false;
+        if (userOpt.isPresent() && userService.authenticate(username, password).isPresent()) {
+            success = true;
             session.setAttribute("user", userOpt.get());
+        }
+        // Only record attempts for existing users
+        if (userId != null) {
+            LoginAttempt attempt = new LoginAttempt(null, userId, new Date(), success, "login");
+            loginAttemptRepository.save(attempt);
+        }
+        if (success) {
             return "redirect:/dashboard";
         } else {
             model.addAttribute("error", "Invalid username or password");

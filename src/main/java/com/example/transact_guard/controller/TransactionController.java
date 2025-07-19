@@ -12,17 +12,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpSession;
 import java.math.BigDecimal;
+import com.example.transact_guard.model.LoginAttempt;
+import com.example.transact_guard.repository.LoginAttemptRepository;
+import java.util.Date;
 
 @Controller
 public class TransactionController {
 
     private final TransactionService transactionService;
     private final UserService userService;
+    private final LoginAttemptRepository loginAttemptRepository;
 
     @Autowired
-    public TransactionController(TransactionService transactionService, UserService userService) {
+    public TransactionController(TransactionService transactionService, UserService userService, LoginAttemptRepository loginAttemptRepository) {
         this.transactionService = transactionService;
         this.userService = userService;
+        this.loginAttemptRepository = loginAttemptRepository;
     }
 
     @GetMapping("/transfer")
@@ -53,6 +58,9 @@ public class TransactionController {
             user = userService.findById(user.getUserId()).orElse(user);
             session.setAttribute("user", user);
         } catch (Exception e) {
+            // Record failed transaction attempt
+            LoginAttempt attempt = new LoginAttempt(null, user.getUserId(), new Date(), false, "transaction");
+            loginAttemptRepository.save(attempt);
             model.addAttribute("error", e.getMessage());
         }
         model.addAttribute("user", user);

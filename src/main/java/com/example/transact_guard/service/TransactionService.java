@@ -8,4 +8,5 @@ public interface TransactionService {
     Transaction sendMoney(String senderId, String recipientUsername, BigDecimal amount);
     List<Transaction> getTransactionsByUserId(String userId);
     List<Transaction> getTransactionsByRecipientId(String recipientId);
+    List<Transaction> filterTransactions(String userId, java.util.Date start, java.util.Date end, String recipientUsername, java.math.BigDecimal minAmount, java.math.BigDecimal maxAmount);
 } 
